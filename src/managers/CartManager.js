@@ -13,40 +13,56 @@ export default class CartManager {
             }
             return [];
         } catch (error) {
+            console.error('Error al leer carritos:', error);
             return [];
         }
     }
 
     createCart = async () => {
-        const carts = await this.getCarts();
-        const newCart = {
-            id: carts.length === 0 ? 1 : carts[carts.length - 1].id + 1,
-            products: []
-        };
-        carts.push(newCart);
-        await fs.promises.writeFile(this.path, JSON.stringify(carts, null, '\t'));
-        return newCart;
+        try {
+            const carts = await this.getCarts();
+            const newCart = {
+                id: carts.length === 0 ? 1 : carts[carts.length - 1].id + 1,
+                products: []
+            };
+            carts.push(newCart);
+            await fs.promises.writeFile(this.path, JSON.stringify(carts, null, '\t'));
+            return newCart;
+        } catch (error) {
+            console.error('Error al crear carrito:', error);
+            throw error;
+        }
     }
 
     getCartById = async (id) => {
-        const carts = await this.getCarts();
-        return carts.find(c => c.id === id) || null;
+        try {
+            const carts = await this.getCarts();
+            return carts.find(c => c.id === id) || null;
+        } catch (error) {
+            console.error('Error al obtener carrito por ID:', error);
+            return null;
+        }
     }
 
     addProductToCart = async (cid, pid) => {
-        const carts = await this.getCarts();
-        const cartIndex = carts.findIndex(c => c.id === cid);
-        if (cartIndex === -1) return null;
+        try {
+            const carts = await this.getCarts();
+            const cartIndex = carts.findIndex(c => c.id === cid);
+            if (cartIndex === -1) return null;
 
-        const productIndex = carts[cartIndex].products.findIndex(p => p.product === pid);
+            const productIndex = carts[cartIndex].products.findIndex(p => p.product === pid);
 
-        if (productIndex !== -1) {
-            carts[cartIndex].products[productIndex].quantity++;
-        } else {
-            carts[cartIndex].products.push({ product: pid, quantity: 1 });
+            if (productIndex !== -1) {
+                carts[cartIndex].products[productIndex].quantity++;
+            } else {
+                carts[cartIndex].products.push({ product: pid, quantity: 1 });
+            }
+
+            await fs.promises.writeFile(this.path, JSON.stringify(carts, null, '\t'));
+            return carts[cartIndex];
+        } catch (error) {
+            console.error('Error al agregar producto al carrito:', error);
+            throw error;
         }
-
-        await fs.promises.writeFile(this.path, JSON.stringify(carts, null, '\t'));
-        return carts[cartIndex];
     }
 }

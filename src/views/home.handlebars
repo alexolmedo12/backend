@@ -1,0 +1,22 @@
+<h1>Lista de Productos</h1>
+
+{{#if products.length}}
+    <ul>
+        {{#each products}}
+            <li>
+                <h3>{{this.title}}</h3>
+                <p>Descripción: {{this.description}}</p>
+                <p>Precio: ${{this.price}}</p>
+                <p>Stock: {{this.stock}}</p>
+                <p>Categoría: {{this.category}}</p>
+                <p>Código: {{this.code}}</p>
+                <hr>
+            </li>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>No hay productos disponibles.</p>
+{{/if}}
+
+<br>
+<a href="/realtimeproducts"></a>

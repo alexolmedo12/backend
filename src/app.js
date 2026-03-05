@@ -1,18 +1,24 @@
 import express from 'express';
 import { engine } from 'express-handlebars';
 import { Server } from 'socket.io';
+import connectDB from './config/db.js';
 import productsRouter from './routes/products.router.js';
 import cartsRouter from './routes/carts.router.js';
 import viewsRouter from './routes/views.router.js';
-import ProductManager from './managers/ProductManager.js';
+import Product from './models/Product.js';
+
+// Conectar a MongoDB
+connectDB();
 
 const app = express();
 const PORT = 8080;
 
-const productManager = new ProductManager('./src/data/products.json');
-
 // Configurar Handlebars
-app.engine('handlebars', engine());
+app.engine('handlebars', engine({
+    helpers: {
+        eq: (a, b) => a === b
+    }
+}));
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
 
@@ -37,26 +43,24 @@ const io = new Server(httpServer);
 io.on('connection', async (socket) => {
     console.log('Nuevo cliente conectado');
 
-    // Enviar productos al conectarse
-    const products = await productManager.getProducts();
+    const products = await Product.find().lean();
     socket.emit('updateProducts', products);
 
-    // Agregar producto
     socket.on('addProduct', async (product) => {
         try {
-            await productManager.addProduct(product);
-            const products = await productManager.getProducts();
+            const newProduct = new Product(product);
+            await newProduct.save();
+            const products = await Product.find().lean();
             io.emit('updateProducts', products);
         } catch (error) {
             console.error('Error al agregar producto:', error);
         }
     });
 
-    // Eliminar producto
     socket.on('deleteProduct', async (id) => {
         try {
-            await productManager.deleteProduct(id);
-            const products = await productManager.getProducts();
+            await Product.findByIdAndDelete(id);
+            const products = await Product.find().lean();
             io.emit('updateProducts', products);
         } catch (error) {
             console.error('Error al eliminar producto:', error);

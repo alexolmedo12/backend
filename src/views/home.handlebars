@@ -1,22 +1,64 @@
-<h1>Lista de Productos</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .filters { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filters input, .filters select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .filters button { padding: 8px 16px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .product-card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+        .product-card h3 { margin: 0 0 8px; font-size: 1rem; }
+        .product-card p { margin: 4px 0; color: #555; font-size: 0.9rem; }
+        .product-card .price { font-size: 1.1rem; font-weight: bold; color: #000; }
+        .product-card a { display: inline-block; margin-top: 10px; padding: 6px 12px; background: #333; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85rem; }
+        .pagination { margin-top: 30px; display: flex; gap: 10px; align-items: center; justify-content: center; }
+        .pagination a { padding: 8px 16px; background: #333; color: white; text-decoration: none; border-radius: 4px; }
+        .pagination span { font-size: 0.95rem; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>{{title}}</h1>
 
-{{#if products.length}}
-    <ul>
+    <div class="filters">
+        <form method="GET" action="/products" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" name="query" placeholder="Buscar por categoría..." value="{{query}}">
+            <select name="sort">
+                <option value="">Sin ordenar</option>
+                <option value="asc" {{#if (eq sort 'asc')}}selected{{/if}}>Precio: menor a mayor</option>
+                <option value="desc" {{#if (eq sort 'desc')}}selected{{/if}}>Precio: mayor a menor</option>
+            </select>
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <div class="products-grid">
         {{#each products}}
-            <li>
-                <h3>{{this.title}}</h3>
-                <p>Descripción: {{this.description}}</p>
-                <p>Precio: ${{this.price}}</p>
-                <p>Stock: {{this.stock}}</p>
-                <p>Categoría: {{this.category}}</p>
-                <p>Código: {{this.code}}</p>
-                <hr>
-            </li>
+        <div class="product-card">
+            {{#if this.thumbnails.length}}
+            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" style="width:100%; height:150px; object-fit:cover; border-radius:4px; margin-bottom:8px;">
+            {{/if}}
+            <h3>{{this.title}}</h3>
+            <p>Categoría: {{this.category}}</p>
+            <p class="price">${{this.price}}</p>
+            <p>Stock: {{this.stock}}</p>
+            <a href="/products/{{this._id}}">Ver detalle</a>
+        </div>
+        {{else}}
+        <p>No se encontraron productos.</p>
         {{/each}}
-    </ul>
-{{else}}
-    <p>No hay productos disponibles.</p>
-{{/if}}
+    </div>
 
-<br>
-<a href="/realtimeproducts"></a>
+    <div class="pagination">
+        {{#if hasPrevPage}}
+        <a href="{{prevLink}}">← Anterior</a>
+        {{/if}}
+        <span>Página {{page}} de {{totalPages}}</span>
+        {{#if hasNextPage}}
+        <a href="{{nextLink}}">Siguiente →</a>
+        {{/if}}
+    </div>
+</body>
+</html>
